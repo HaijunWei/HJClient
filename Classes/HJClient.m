@@ -181,9 +181,9 @@
 
 /// 反序列化数据
 - (id)deserializationWithRequest:(HJRequest *)request data:(id)data {
-    if (![data isKindOfClass:[NSDictionary class]] || request.responseDataCls == NULL) { return nil; }
+    if (request.responseDataCls == NULL) { return nil; }
 
-    if (request.deserializationPath) {
+    if (request.deserializationPath && [data isKindOfClass:[NSDictionary class]]) {
         // 跳到指定路径
         NSArray *paths = [request.deserializationPath componentsSeparatedByString:@"."];
         for (NSString *path in paths) {
