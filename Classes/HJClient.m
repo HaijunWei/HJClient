@@ -181,7 +181,7 @@
 
 /// 反序列化数据
 - (id)deserializationWithRequest:(HJRequest *)request data:(id)data {
-    if (request.responseDataCls == NULL) { return nil; }
+    if (![data isKindOfClass:[NSDictionary class]] || request.responseDataCls == NULL) { return nil; }
 
     if (request.deserializationPath) {
         // 跳到指定路径
