@@ -206,7 +206,10 @@
 
 /// 请求将要执行
 - (void)willExecutionRequest:(HJBaseRequest *)request {
-    if (self.isPrintLog) { NSLog(@"开始请求: %@", request); }
+    if (self.isPrintLog) {
+        if ([request isKindOfClass:[HJRequest class]]) { NSLog(@"开始请求: %@, %@", request, ((HJRequest *)request).params); }
+        else { NSLog(@"开始请求: %@", request); }
+    }
     for (id<HJClientPlugin> plugin in self.plugins) {
         if ([plugin respondsToSelector:@selector(client:willExecutionRequest:)]) {
             [plugin client:self willExecutionRequest:request];
