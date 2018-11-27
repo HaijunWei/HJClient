@@ -7,8 +7,16 @@
 #import <Foundation/Foundation.h>
 #import "HJRequest.h"
 #import "HJResponse.h"
+#import "HJRequestTask.h"
 #import "HJBatchRequest.h"
+#import "HJChainRequest.h"
 #import "HJClientPlugin.h"
+
+typedef NSString *HJClientResponseKey;
+
+extern HJClientResponseKey const HJClientResponseCodeKey;
+extern HJClientResponseKey const HJClientResponseDataKey;
+extern HJClientResponseKey const HJClientResponseMessageKey;
 
 typedef void(^HJRequestSuccessBlock)(HJResponse *response);
 typedef void(^HJRequestFailureBlock)(NSString *error);
@@ -23,8 +31,8 @@ typedef void(^HJRequestFailureBlock)(NSString *error);
 - (HJRequest *)client:(HJClient *)client prepareRequest:(HJRequest *)request;
 /// 执行请求之前调用，可在此方法中给请求头附加参数
 - (NSMutableURLRequest *)client:(HJClient *)client prepareURLRequest:(NSMutableURLRequest *)request;
-/// 检验响应数据，返回值为空 = 验证通过
-- (NSString *)client:(HJClient *)client verifyResponse:(HJResponse *)response forRequest:(HJRequest *)request;
+/// 检验响应数据，YES = 校验通过
+- (BOOL)client:(HJClient *)client verifyResponse:(HJResponse *)response forRequest:(HJRequest *)request error:(NSString **)error;
 
 @end
 
@@ -41,16 +49,16 @@ typedef void(^HJRequestFailureBlock)(NSString *error);
 /// BaseURL
 @property (nonatomic, strong) NSURL *baseURL;
 
-/// 响应对象键值映射，@{@"message":@"xxx", @"code":@"xxx", @"data":@"xxx"}
+/// 响应对象键值映射，@{HJClientResponseKey:xxx}
 @property (nonatomic, strong) NSDictionary *responseKeyMapping;
 
 /// 注册插件
 - (void)registerPlugin:(id<HJClientPlugin>)plugin;
 
 /// 入列请求
-- (void)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure;
+- (HJRequestTask *)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure;
 
 /// 入列请求
-+ (void)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure;
++ (HJRequestTask *)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure;
 
 @end

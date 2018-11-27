@@ -13,4 +13,9 @@
 @property (nonatomic, copy) NSString *fileName;
 @property (nonatomic, copy) NSString *mineType;
 
++ (instancetype)fileWithData:(NSData *)data
+                        name:(NSString *)name
+                    fileName:(NSString *)fileName
+                    mineType:(NSString *)mineType;
+
 @end

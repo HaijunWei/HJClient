@@ -8,6 +8,10 @@
 #import <MJExtension/MJExtension.h>
 #import <AFNetworking/AFNetworking.h>
 
+HJClientResponseKey const HJClientResponseCodeKey = @"code";
+HJClientResponseKey const HJClientResponseDataKey = @"data";
+HJClientResponseKey const HJClientResponseMessageKey = @"message";
+
 @interface HJClient ()
 
 @property (nonatomic, strong) AFHTTPSessionManager *httpManager;
@@ -19,23 +23,108 @@
 
 #pragma mark - Class Method
 
-+ (void)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
-    [[self shared] enqueueRequest:request success:success failure:failure];
++ (HJRequestTask *)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
+    return [[self shared] enqueueRequest:request success:success failure:failure];
 }
 
 #pragma mark - Reuqest
 
 /// 入列请求
-- (void)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
+- (HJRequestTask *)enqueueRequest:(HJBaseRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
     if ([request isKindOfClass:[HJRequest class]]) {
-        [self executionRequest:(HJRequest *)request success:success failure:failure];
+        return [self executionRequest:(HJRequest *)request success:success failure:failure];
+    } else if ([request isKindOfClass:[HJBatchRequest class]]) {
+        return [self executionBatchReuqest:(HJBatchRequest *)request success:success failure:failure];
     } else {
-        [self executionBatchReuqest:(HJBatchRequest *)request success:success failure:failure];
+        return [self excutionChainRequest:(HJChainRequest *)request success:success failure:failure];
     }
 }
 
+/// 执行并发请求
+- (HJRequestTask *)executionBatchReuqest:(HJBatchRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
+    [self willExecutionRequest:request];
+    dispatch_group_t group = dispatch_group_create();
+    HJRequestTask *task = [HJRequestTask new];
+    NSMutableArray *result = [NSMutableArray array];
+    for (int i = 0; i < request.requests.count; i++) { [result addObject:[NSNull null]]; }
+    __block NSString *resultError;
+    void (^completionHanlder)(HJResponse *, NSString *, NSInteger) = ^(HJResponse *response, NSString *error, NSInteger index) {
+        if (response) {
+            result[index] = response;
+            return;
+        }
+        // 排除后续取消Task抛出的错误
+        if (!resultError) { resultError = error; }
+        // 某个任务发生错误，结束全部任务
+        [task cancel];
+    };
+    for (int i = 0; i < request.requests.count; i++) {
+        HJBaseRequest *subRequest = request.requests[i];
+        dispatch_group_enter(group);
+        [task addSubtask:[self enqueueRequest:subRequest success:^(HJResponse *response) {
+            completionHanlder(response, nil, i);
+            dispatch_group_leave(group);
+        } failure:^(NSString *error) {
+            completionHanlder(nil, error, i);
+            dispatch_group_leave(group);
+        }]];
+    }
+
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        [self didFinishRequest:request error:resultError];
+        if (resultError) {
+            failure(resultError);
+            return;
+        }
+        HJResponse *response = [HJResponse new];
+        response.dataObject = result;
+        success(response);
+    });
+    return task;
+}
+
+/// 执行链式请求
+- (HJRequestTask *)excutionChainRequest:(HJChainRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
+    [self willExecutionRequest:request];
+    HJRequestTask *task = [HJRequestTask new];
+    NSMutableArray *resultResponses = [NSMutableArray array];
+    for (int i = 0; i < request.requests.count; i++) { [resultResponses addObject:[NSNull null]]; }
+    [self excutionChainRequest:request task:task resultResponses:resultResponses success:success failure:failure];
+    return task;
+}
+
+/// 递归链式请求
+- (void)excutionChainRequest:(HJChainRequest *)request
+                        task:(HJRequestTask *)task
+             resultResponses:(NSMutableArray *)resultResponses
+                     success:(HJRequestSuccessBlock)success
+                     failure:(HJRequestFailureBlock)failure {
+    void (^callback)(NSString *) = ^(NSString *error) {
+        [self didFinishRequest:request error:error];
+        if (error) { failure(error); return; }
+        HJResponse *response = [HJResponse new];
+        response.dataObject = resultResponses;
+        success(response);
+    };
+    NSInteger idx = [resultResponses indexOfObject:[NSNull null]];
+    if (idx == NSNotFound || task.isCanceled) {
+        callback(nil);
+        return;
+    }
+    [task addSubtask:[self enqueueRequest:request.requests[idx] success:^(HJResponse *response) {
+        resultResponses[idx] = response;
+        NSInteger nextIdx = idx + 1;
+        if (nextIdx >= request.requests.count) { nextIdx = NSNotFound; }
+        request.progressBlock(request, response, nextIdx);
+        [self excutionChainRequest:request task:task resultResponses:resultResponses success:success failure:failure];
+    } failure:^(NSString *error) {
+        [task cancel];
+        callback(error);
+    }]];
+}
+
 /// 执行单个请求
-- (NSURLSessionDataTask *)executionRequest:(HJRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
+- (HJRequestTask *)executionRequest:(HJRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
     // 附加参数
     if ([self.delegate respondsToSelector:@selector(client:prepareRequest:)]) {
         request = [self.delegate client:self prepareRequest:request];
@@ -44,18 +133,19 @@
     if ([self.delegate respondsToSelector:@selector(client:prepareURLRequest:)]) {
         URLRequest = [self.delegate client:self prepareURLRequest:URLRequest];
     }
-
+    
     void (^successHandler)(id, BOOL) = ^(id responseObject, BOOL isCustomData) {
         HJResponse *res = [self createResponse:request responseObject:responseObject];
         if (!res) {
-            [self didFinishRequest:request error:@"解析数据出错"];
-            failure(@"解析数据出错");
+            [self didFinishRequest:request error:@"解析数据失败"];
+            if (self.isPrintLog) { NSLog(@"%@", [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding]); }
+            failure(@"解析数据失败");
             return;
         }
         // 校验响应数据
-        if ([self.delegate respondsToSelector:@selector(client:verifyResponse:forRequest:)]) {
-            NSString *verifyMessage = [self.delegate client:self verifyResponse:res forRequest:request];
-            if (verifyMessage) {
+        if ([self.delegate respondsToSelector:@selector(client:verifyResponse:forRequest:error:)]) {
+            NSString *verifyMessage;
+            if (![self.delegate client:self verifyResponse:res forRequest:request error:&verifyMessage]) {
                 [self didFinishRequest:request error:verifyMessage];
                 failure(verifyMessage);
                 return;
@@ -65,7 +155,7 @@
         [self didFinishRequest:request error:nil];
         success(res);
     };
-
+    
     [self willExecutionRequest:request];
     // 判断是否有自定义数据
     id responseObject = [self getCustomResponse:request];
@@ -77,56 +167,17 @@
         }
     } downloadProgress:nil completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
         if (error) {
-            [self didFinishRequest:request error:error.localizedDescription];
-            failure(error.localizedDescription);
+            NSString *errorMsg = [self errorStringWithError:error];
+            [self didFinishRequest:request error:errorMsg];
+            failure(errorMsg);
             return;
         }
         successHandler(responseObject, NO);
     }];
     [task resume];
-    return task;
-}
-
-/// 执行并发请求
-- (void)executionBatchReuqest:(HJBatchRequest *)request success:(HJRequestSuccessBlock)success failure:(HJRequestFailureBlock)failure {
-    [self willExecutionRequest:request];
-    dispatch_group_t group = dispatch_group_create();
-    NSMutableArray<NSURLSessionDataTask *> *tasks = [NSMutableArray array];
-    NSMutableArray *result = [NSMutableArray array];
-    for (int i = 0; i < request.requests.count; i++) { [result addObject:@(i)]; }
-    __block NSString *_error;
-    void (^completionHanlder)(HJResponse *, NSInteger) = ^(HJResponse *response, NSInteger index) {
-        if (response) {
-            result[index] = response;
-            return;
-        }
-        /// 某个任务发生错误，结束全部任务
-        for (NSURLSessionDataTask *task in tasks) { [task cancel]; }
-    };
-    for (int i = 0; i < request.requests.count; i++) {
-        HJRequest *subRequest = request.requests[i];
-        dispatch_group_enter(group);
-        NSURLSessionDataTask *task = [self executionRequest:subRequest success:^(HJResponse *response) {
-            completionHanlder(response, i);
-            dispatch_group_leave(group);
-        } failure:^(NSString *error) {
-            _error = error;
-            completionHanlder(nil, i);
-            dispatch_group_leave(group);
-        }];
-        [tasks addObject:task];
-    }
-
-    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-        [self didFinishRequest:request error:_error];
-        if (_error) {
-            failure(_error);
-            return;
-        }
-        HJResponse *response = [HJResponse new];
-        response.dataObject = result;
-        success(response);
-    });
+    HJRequestTask *rqeustTask = [HJRequestTask new];
+    [rqeustTask addSubtask:task];
+    return rqeustTask;
 }
 
 #pragma mark - Helpers
@@ -167,7 +218,20 @@
         [response setValue:jsonDict[self.responseKeyMapping[key]] forKey:key];
     }
     response.rawData = responseObject;
-    response.dataObject = [self deserializationWithRequest:request data:response.data];
+    if (request.responseDataClsArray && request.deserializationPathArray) { /* 解析多个Model */
+        NSAssert(request.responseDataClsArray.count == request.deserializationPathArray.count, @"解析类型与解析路径数量不一致");
+        NSMutableArray *dataObjects = [NSMutableArray array];
+        for (int i = 0; i < request.responseDataClsArray.count; i++) {
+            [dataObjects addObject:[self deserializationWithResponseDataCls:request.responseDataClsArray[i]
+                                                        deserializationPath:request.deserializationPathArray[i]
+                                                                       data:response.data]];
+        }
+        response.dataObjects = dataObjects;
+    } else { /* 解析单个Model */
+        response.dataObject = [self deserializationWithResponseDataCls:request.responseDataCls
+                                                   deserializationPath:request.deserializationPath
+                                                                  data:response.data];
+    }
     return response;
 }
 
@@ -176,25 +240,41 @@
     switch (request.method) {
             case HJRequestMethodGET: return @"GET";
             case HJRequestMethodPOST: return @"POST";
+            case HJRequestMethodPUT: return @"PUT";
+            case HJRequestMethodDELETE: return @"DELETE";
     }
 }
 
 /// 反序列化数据
-- (id)deserializationWithRequest:(HJRequest *)request data:(id)data {
-    if (request.responseDataCls == NULL) { return nil; }
-
-    if (request.deserializationPath && [data isKindOfClass:[NSDictionary class]]) {
+- (id)deserializationWithResponseDataCls:(Class)cls deserializationPath:(NSString *)path data:(id)data {
+    if (cls == NULL) { return nil; }
+    if (path && [data isKindOfClass:[NSDictionary class]]) {
         // 跳到指定路径
-        NSArray *paths = [request.deserializationPath componentsSeparatedByString:@"."];
+        NSArray *paths = [path componentsSeparatedByString:@"."];
         for (NSString *path in paths) {
             data = data[path];
         }
     }
     if ([data isKindOfClass:[NSArray class]]) {
-        return [request.responseDataCls mj_objectArrayWithKeyValuesArray:data];
+        return [cls mj_objectArrayWithKeyValuesArray:data];
     } else {
-        return [request.responseDataCls mj_objectWithKeyValues:data];
+        return [cls mj_objectWithKeyValues:data];
     }
+}
+
+/// 解析错误消息
+- (NSString *)errorStringWithError:(NSError *)error {
+    if (self.isPrintLog) { NSLog(@"%@", error); }
+    if ([error.domain isEqualToString:NSURLErrorDomain]) {
+        if (error.code == NSURLErrorNotConnectedToInternet) {
+            return @"您似乎已断开与互联网的连接，请检查网络设置";
+        } else if (error.code == NSURLErrorTimedOut) {
+            return @"您的网络状态似乎不太好，请求超时";
+        } else if (error.code == NSURLErrorCancelled) {
+            return @"请求已取消";
+        }
+    }
+    return error.localizedDescription;
 }
 
 #pragma mark - Plugin

@@ -11,6 +11,8 @@
 typedef NS_ENUM(NSInteger, HJRequestMethod) {
     HJRequestMethodGET = 0,
     HJRequestMethodPOST,
+    HJRequestMethodPUT,
+    HJRequestMethodDELETE
 };
 
 @interface HJRequest : HJBaseRequest
@@ -29,8 +31,28 @@ typedef NS_ENUM(NSInteger, HJRequestMethod) {
 /// 从指定路径开始反序列化（xxx.xxx）
 @property (nonatomic, strong) NSString *deserializationPath;
 
+/// 解析多个Model，Model类型
+@property (nonatomic, strong) NSArray<Class> *responseDataClsArray;
+/// 解析多个Model，解析路径
+@property (nonatomic, strong) NSArray<NSString *> *deserializationPathArray;
+
 + (instancetype)requestWithPath:(NSString *)path;
 + (instancetype)requestWithPath:(NSString *)path method:(HJRequestMethod)method;
++ (instancetype)requestWithPath:(NSString *)path method:(HJRequestMethod)method responseDataCls:(Class)responseDataCls;
++ (instancetype)requestWithPath:(NSString *)path
+                         method:(HJRequestMethod)method
+            deserializationPath:(NSString *)deserializationPath
+                responseDataCls:(Class)responseDataCls;
+
+#pragma mark - GET
+
++ (instancetype)GET:(NSString *)path responseDataCls:(Class)responseDataCls;
++ (instancetype)GET:(NSString *)path deserializationPath:(NSString *)deserializationPath responseDataCls:(Class)responseDataCls;
+
+#pragma mark - POST
+
++ (instancetype)POST:(NSString *)path responseDataCls:(Class)responseDataCls;
++ (instancetype)POST:(NSString *)path deserializationPath:(NSString *)deserializationPath responseDataCls:(Class)responseDataCls;
 
 @end
 

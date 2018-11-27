@@ -14,12 +14,17 @@
 		F8965E5E21564A4F00C33D10 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F8965E5D21564A4F00C33D10 /* Assets.xcassets */; };
 		F8965E6121564A4F00C33D10 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F8965E5F21564A4F00C33D10 /* LaunchScreen.storyboard */; };
 		F8965E6421564A4F00C33D10 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F8965E6321564A4F00C33D10 /* main.m */; };
-		F897B1132156555100EF9713 /* HJResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F897B1062156555100EF9713 /* HJResponse.m */; };
-		F897B1142156555100EF9713 /* HJClient.m in Sources */ = {isa = PBXBuildFile; fileRef = F897B1072156555100EF9713 /* HJClient.m */; };
-		F897B1152156555100EF9713 /* HJBatchRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F897B10A2156555100EF9713 /* HJBatchRequest.m */; };
-		F897B1162156555100EF9713 /* HJRequestFormFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F897B10B2156555100EF9713 /* HJRequestFormFile.m */; };
-		F897B1172156555100EF9713 /* HJBaseRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F897B10C2156555100EF9713 /* HJBaseRequest.m */; };
-		F897B1182156555100EF9713 /* HJRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F897B1112156555100EF9713 /* HJRequest.m */; };
+		F8F62E9D21ACEFF3002253AC /* HJClient.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E8B21ACEFF2002253AC /* HJClient.m */; };
+		F8F62E9E21ACEFF3002253AC /* HJResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E8E21ACEFF2002253AC /* HJResponse.m */; };
+		F8F62E9F21ACEFF3002253AC /* HJBatchRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E9021ACEFF2002253AC /* HJBatchRequest.m */; };
+		F8F62EA021ACEFF3002253AC /* HJRequestFormFile.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E9121ACEFF2002253AC /* HJRequestFormFile.m */; };
+		F8F62EA121ACEFF3002253AC /* HJBaseRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E9221ACEFF2002253AC /* HJBaseRequest.m */; };
+		F8F62EA221ACEFF3002253AC /* HJRequestTask.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E9921ACEFF2002253AC /* HJRequestTask.m */; };
+		F8F62EA321ACEFF3002253AC /* HJChainRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E9A21ACEFF2002253AC /* HJChainRequest.m */; };
+		F8F62EA421ACEFF3002253AC /* HJRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62E9B21ACEFF2002253AC /* HJRequest.m */; };
+		F8F62EAE21ACF0BD002253AC /* HJClientHUDPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62EA721ACF0BD002253AC /* HJClientHUDPlugin.m */; };
+		F8F62EAF21ACF0BD002253AC /* HJClient+HUDPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62EA821ACF0BD002253AC /* HJClient+HUDPlugin.m */; };
+		F8F62EB021ACF0BD002253AC /* MBProgressHUD+HJExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F62EAA21ACF0BD002253AC /* MBProgressHUD+HJExtension.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,19 +41,29 @@
 		F8965E6021564A4F00C33D10 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F8965E6221564A4F00C33D10 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F8965E6321564A4F00C33D10 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		F897B1052156555100EF9713 /* HJResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJResponse.h; sourceTree = "<group>"; };
-		F897B1062156555100EF9713 /* HJResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJResponse.m; sourceTree = "<group>"; };
-		F897B1072156555100EF9713 /* HJClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJClient.m; sourceTree = "<group>"; };
-		F897B1082156555100EF9713 /* HJClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJClient.h; sourceTree = "<group>"; };
-		F897B10A2156555100EF9713 /* HJBatchRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJBatchRequest.m; sourceTree = "<group>"; };
-		F897B10B2156555100EF9713 /* HJRequestFormFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJRequestFormFile.m; sourceTree = "<group>"; };
-		F897B10C2156555100EF9713 /* HJBaseRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJBaseRequest.m; sourceTree = "<group>"; };
-		F897B10D2156555100EF9713 /* HJRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJRequest.h; sourceTree = "<group>"; };
-		F897B10E2156555100EF9713 /* HJBatchRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJBatchRequest.h; sourceTree = "<group>"; };
-		F897B10F2156555100EF9713 /* HJRequestFormFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJRequestFormFile.h; sourceTree = "<group>"; };
-		F897B1102156555100EF9713 /* HJBaseRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJBaseRequest.h; sourceTree = "<group>"; };
-		F897B1112156555100EF9713 /* HJRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJRequest.m; sourceTree = "<group>"; };
-		F897B1122156555100EF9713 /* HJClientPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJClientPlugin.h; sourceTree = "<group>"; };
+		F8F62E8A21ACEFF2002253AC /* HJClientPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJClientPlugin.h; sourceTree = "<group>"; };
+		F8F62E8B21ACEFF2002253AC /* HJClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJClient.m; sourceTree = "<group>"; };
+		F8F62E8D21ACEFF2002253AC /* HJResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJResponse.h; sourceTree = "<group>"; };
+		F8F62E8E21ACEFF2002253AC /* HJResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJResponse.m; sourceTree = "<group>"; };
+		F8F62E9021ACEFF2002253AC /* HJBatchRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJBatchRequest.m; sourceTree = "<group>"; };
+		F8F62E9121ACEFF2002253AC /* HJRequestFormFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJRequestFormFile.m; sourceTree = "<group>"; };
+		F8F62E9221ACEFF2002253AC /* HJBaseRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJBaseRequest.m; sourceTree = "<group>"; };
+		F8F62E9321ACEFF2002253AC /* HJRequestTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJRequestTask.h; sourceTree = "<group>"; };
+		F8F62E9421ACEFF2002253AC /* HJRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJRequest.h; sourceTree = "<group>"; };
+		F8F62E9521ACEFF2002253AC /* HJChainRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJChainRequest.h; sourceTree = "<group>"; };
+		F8F62E9621ACEFF2002253AC /* HJBatchRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJBatchRequest.h; sourceTree = "<group>"; };
+		F8F62E9721ACEFF2002253AC /* HJRequestFormFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJRequestFormFile.h; sourceTree = "<group>"; };
+		F8F62E9821ACEFF2002253AC /* HJBaseRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJBaseRequest.h; sourceTree = "<group>"; };
+		F8F62E9921ACEFF2002253AC /* HJRequestTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJRequestTask.m; sourceTree = "<group>"; };
+		F8F62E9A21ACEFF2002253AC /* HJChainRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJChainRequest.m; sourceTree = "<group>"; };
+		F8F62E9B21ACEFF2002253AC /* HJRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJRequest.m; sourceTree = "<group>"; };
+		F8F62E9C21ACEFF2002253AC /* HJClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJClient.h; sourceTree = "<group>"; };
+		F8F62EA721ACF0BD002253AC /* HJClientHUDPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HJClientHUDPlugin.m; sourceTree = "<group>"; };
+		F8F62EA821ACF0BD002253AC /* HJClient+HUDPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "HJClient+HUDPlugin.m"; sourceTree = "<group>"; };
+		F8F62EAA21ACF0BD002253AC /* MBProgressHUD+HJExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MBProgressHUD+HJExtension.m"; sourceTree = "<group>"; };
+		F8F62EAB21ACF0BD002253AC /* MBProgressHUD+HJExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MBProgressHUD+HJExtension.h"; sourceTree = "<group>"; };
+		F8F62EAC21ACF0BD002253AC /* HJClient+HUDPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "HJClient+HUDPlugin.h"; sourceTree = "<group>"; };
+		F8F62EAD21ACF0BD002253AC /* HJClientHUDPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HJClientHUDPlugin.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,38 +133,72 @@
 		F897B1032156555100EF9713 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				F897B1082156555100EF9713 /* HJClient.h */,
-				F897B1072156555100EF9713 /* HJClient.m */,
-				F897B1122156555100EF9713 /* HJClientPlugin.h */,
-				F897B1092156555100EF9713 /* Request */,
-				F897B1042156555100EF9713 /* Response */,
+				F8F62E9C21ACEFF2002253AC /* HJClient.h */,
+				F8F62E8B21ACEFF2002253AC /* HJClient.m */,
+				F8F62E8A21ACEFF2002253AC /* HJClientPlugin.h */,
+				F8F62EA521ACF013002253AC /* Plugins */,
+				F8F62E8F21ACEFF2002253AC /* Request */,
+				F8F62E8C21ACEFF2002253AC /* Response */,
 			);
 			name = Classes;
 			path = ../../Classes;
 			sourceTree = "<group>";
 		};
-		F897B1042156555100EF9713 /* Response */ = {
+		F8F62E8C21ACEFF2002253AC /* Response */ = {
 			isa = PBXGroup;
 			children = (
-				F897B1052156555100EF9713 /* HJResponse.h */,
-				F897B1062156555100EF9713 /* HJResponse.m */,
+				F8F62E8D21ACEFF2002253AC /* HJResponse.h */,
+				F8F62E8E21ACEFF2002253AC /* HJResponse.m */,
 			);
 			path = Response;
 			sourceTree = "<group>";
 		};
-		F897B1092156555100EF9713 /* Request */ = {
+		F8F62E8F21ACEFF2002253AC /* Request */ = {
 			isa = PBXGroup;
 			children = (
-				F897B1102156555100EF9713 /* HJBaseRequest.h */,
-				F897B10C2156555100EF9713 /* HJBaseRequest.m */,
-				F897B10E2156555100EF9713 /* HJBatchRequest.h */,
-				F897B10A2156555100EF9713 /* HJBatchRequest.m */,
-				F897B10D2156555100EF9713 /* HJRequest.h */,
-				F897B1112156555100EF9713 /* HJRequest.m */,
-				F897B10F2156555100EF9713 /* HJRequestFormFile.h */,
-				F897B10B2156555100EF9713 /* HJRequestFormFile.m */,
+				F8F62E9821ACEFF2002253AC /* HJBaseRequest.h */,
+				F8F62E9221ACEFF2002253AC /* HJBaseRequest.m */,
+				F8F62E9621ACEFF2002253AC /* HJBatchRequest.h */,
+				F8F62E9021ACEFF2002253AC /* HJBatchRequest.m */,
+				F8F62E9521ACEFF2002253AC /* HJChainRequest.h */,
+				F8F62E9A21ACEFF2002253AC /* HJChainRequest.m */,
+				F8F62E9421ACEFF2002253AC /* HJRequest.h */,
+				F8F62E9B21ACEFF2002253AC /* HJRequest.m */,
+				F8F62E9721ACEFF2002253AC /* HJRequestFormFile.h */,
+				F8F62E9121ACEFF2002253AC /* HJRequestFormFile.m */,
+				F8F62E9321ACEFF2002253AC /* HJRequestTask.h */,
+				F8F62E9921ACEFF2002253AC /* HJRequestTask.m */,
 			);
 			path = Request;
+			sourceTree = "<group>";
+		};
+		F8F62EA521ACF013002253AC /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				F8F62EA621ACF0BD002253AC /* DWClientHUDPlugin */,
+			);
+			path = Plugins;
+			sourceTree = "<group>";
+		};
+		F8F62EA621ACF0BD002253AC /* DWClientHUDPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				F8F62EAC21ACF0BD002253AC /* HJClient+HUDPlugin.h */,
+				F8F62EA821ACF0BD002253AC /* HJClient+HUDPlugin.m */,
+				F8F62EAD21ACF0BD002253AC /* HJClientHUDPlugin.h */,
+				F8F62EA721ACF0BD002253AC /* HJClientHUDPlugin.m */,
+				F8F62EA921ACF0BD002253AC /* MBProgressHUD */,
+			);
+			path = DWClientHUDPlugin;
+			sourceTree = "<group>";
+		};
+		F8F62EA921ACF0BD002253AC /* MBProgressHUD */ = {
+			isa = PBXGroup;
+			children = (
+				F8F62EAA21ACF0BD002253AC /* MBProgressHUD+HJExtension.m */,
+				F8F62EAB21ACF0BD002253AC /* MBProgressHUD+HJExtension.h */,
+			);
+			path = MBProgressHUD;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -228,11 +277,13 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-Demo/Pods-Demo-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
+				"${BUILT_PRODUCTS_DIR}/MBProgressHUD/MBProgressHUD.framework",
 				"${BUILT_PRODUCTS_DIR}/MJExtension/MJExtension.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AFNetworking.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MBProgressHUD.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MJExtension.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -265,15 +316,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F897B1182156555100EF9713 /* HJRequest.m in Sources */,
-				F897B1172156555100EF9713 /* HJBaseRequest.m in Sources */,
-				F897B1142156555100EF9713 /* HJClient.m in Sources */,
-				F897B1132156555100EF9713 /* HJResponse.m in Sources */,
-				F897B1162156555100EF9713 /* HJRequestFormFile.m in Sources */,
+				F8F62EA121ACEFF3002253AC /* HJBaseRequest.m in Sources */,
 				F8965E5921564A4D00C33D10 /* ViewController.m in Sources */,
+				F8F62E9E21ACEFF3002253AC /* HJResponse.m in Sources */,
+				F8F62EA021ACEFF3002253AC /* HJRequestFormFile.m in Sources */,
 				F8965E6421564A4F00C33D10 /* main.m in Sources */,
-				F897B1152156555100EF9713 /* HJBatchRequest.m in Sources */,
+				F8F62EA221ACEFF3002253AC /* HJRequestTask.m in Sources */,
+				F8F62E9D21ACEFF3002253AC /* HJClient.m in Sources */,
+				F8F62EA321ACEFF3002253AC /* HJChainRequest.m in Sources */,
+				F8F62EA421ACEFF3002253AC /* HJRequest.m in Sources */,
+				F8F62E9F21ACEFF3002253AC /* HJBatchRequest.m in Sources */,
+				F8F62EAF21ACF0BD002253AC /* HJClient+HUDPlugin.m in Sources */,
 				F8965E5621564A4D00C33D10 /* AppDelegate.m in Sources */,
+				F8F62EAE21ACF0BD002253AC /* HJClientHUDPlugin.m in Sources */,
+				F8F62EB021ACF0BD002253AC /* MBProgressHUD+HJExtension.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -415,6 +471,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 98CEEV27UQ;
 				INFOPLIST_FILE = Demo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -432,6 +489,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 98CEEV27UQ;
 				INFOPLIST_FILE = Demo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
