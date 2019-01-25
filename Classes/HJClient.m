@@ -151,7 +151,7 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
                 return;
             }
         }
-        [self didReceiveResponse:res isCustomData:YES forRequest:request];
+        [self didReceiveResponse:res isCustomData:isCustomData forRequest:request];
         [self didFinishRequest:request error:nil];
         success(res);
     };
@@ -159,7 +159,10 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
     [self willExecutionRequest:request];
     // 判断是否有自定义数据
     id responseObject = [self getCustomResponse:request];
-    if (responseObject) { successHandler(responseObject, YES); }
+    if (responseObject) {
+        successHandler(responseObject, YES);
+        return [HJRequestTask new];
+    }
     // 发起请求
     NSURLSessionDataTask * task = [self.httpManager dataTaskWithRequest:URLRequest uploadProgress:^(NSProgress *uploadProgress) {
         if (request.files) { /* 上传请求更新进度 */
@@ -167,6 +170,12 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
         }
     } downloadProgress:nil completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
         if (error) {
+            // 判断是否有自定义数据
+            id responseObject = [self getCustomResponseOnError:request];
+            if (responseObject) {
+                successHandler(responseObject, YES);
+                return;
+            }
             NSString *errorMsg = [self errorStringWithError:error];
             [self didFinishRequest:request error:errorMsg];
             failure(errorMsg);
@@ -304,6 +313,20 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
             id data = [plugin client:self customResponseForRequest:request];
             if (data) {
                 if (self.isPrintLog) { NSLog(@"请求获取到自定义响应: %@", request); }
+                return data;
+            }
+        }
+    }
+    return nil;
+}
+
+/// 请求出错获取自定义响应
+- (id)getCustomResponseOnError:(HJRequest *)request {
+    for (id<HJClientPlugin> plugin in self.plugins) {
+        if ([plugin respondsToSelector:@selector(client:customResponseOnErrorForRequest:)]) {
+            id data = [plugin client:self customResponseOnErrorForRequest:request];
+            if (data) {
+                if (self.isPrintLog) { NSLog(@"请求出错，获取到自定义响应: %@", request); }
                 return data;
             }
         }

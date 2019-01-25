@@ -17,6 +17,9 @@
 /// 自定义请求响应，如果此方法有返回，不会去请求服务器内容
 - (id)client:(HJClient *)client customResponseForRequest:(HJRequest *)request;
 
+/// 请求出错时，可在此方法中自定义响应数据
+- (id)client:(HJClient *)client customResponseOnErrorForRequest:(HJRequest *)request;
+
 /// 收到响应
 - (void)client:(HJClient *)client didReceiveResponse:(HJResponse *)response isCustomData:(BOOL)isCustomData forRequest:(HJRequest *)request;
 
