@@ -16,6 +16,8 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
 
 @property (nonatomic, strong) AFHTTPSessionManager *httpManager;
 @property (nonatomic, strong) NSMutableArray<id<HJClientPlugin>> *plugins;
+@property (nonatomic, strong) AFHTTPRequestSerializer *httpRequestSerializer;
+@property (nonatomic, strong) AFJSONRequestSerializer *jsonRequestSerializer;
 
 @end
 
@@ -69,7 +71,7 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
             dispatch_group_leave(group);
         }]];
     }
-
+    
     dispatch_group_notify(group, dispatch_get_main_queue(), ^{
         [self didFinishRequest:request error:resultError];
         if (resultError) {
@@ -136,12 +138,6 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
     
     void (^successHandler)(id, BOOL) = ^(id responseObject, BOOL isCustomData) {
         HJResponse *res = [self createResponse:request responseObject:responseObject];
-        if (!res) {
-            [self didFinishRequest:request error:@"解析数据失败"];
-            if (self.isPrintLog) { NSLog(@"%@", [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding]); }
-            failure(@"解析数据失败");
-            return;
-        }
         // 校验响应数据
         if ([self.delegate respondsToSelector:@selector(client:verifyResponse:forRequest:error:)]) {
             NSString *verifyMessage;
@@ -159,10 +155,7 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
     [self willExecutionRequest:request];
     // 判断是否有自定义数据
     id responseObject = [self getCustomResponse:request];
-    if (responseObject) {
-        successHandler(responseObject, YES);
-        return [HJRequestTask new];
-    }
+    if (responseObject) { successHandler(responseObject, YES); }
     // 发起请求
     NSURLSessionDataTask * task = [self.httpManager dataTaskWithRequest:URLRequest uploadProgress:^(NSProgress *uploadProgress) {
         if (request.files) { /* 上传请求更新进度 */
@@ -170,13 +163,23 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
         }
     } downloadProgress:nil completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
         if (error) {
-            // 判断是否有自定义数据
-            id responseObject = [self getCustomResponseOnError:request];
-            if (responseObject) {
-                successHandler(responseObject, YES);
-                return;
+            NSString *errorMsg;
+            // 如果是服务器响应错误，设置错误码为响应码
+            if ([error.userInfo.allKeys containsObject:AFNetworkingOperationFailingURLResponseErrorKey]) {
+                NSHTTPURLResponse *res = error.userInfo[AFNetworkingOperationFailingURLResponseErrorKey];
+                error = [NSError errorWithDomain:error.domain code:res.statusCode userInfo:error.userInfo];
             }
-            NSString *errorMsg = [self errorStringWithError:error];
+            // 如果responseObject中有值，取出错误信息
+            if (responseObject) {
+                errorMsg = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
+            } else {
+                errorMsg = [self errorStringWithError:error];
+            }
+            if ([self.delegate respondsToSelector:@selector(client:request:didReceiveError:)]) {
+                NSString *msg = [self.delegate client:self request:request didReceiveError:error];
+                // 有自定义错误信息
+                if (msg) { errorMsg = msg; }
+            }
             [self didFinishRequest:request error:errorMsg];
             failure(errorMsg);
             return;
@@ -197,36 +200,58 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
     NSMutableURLRequest *URLRequest;
     NSString *method = [self methodNameWithRequest:request];
     NSString *URLString = [[NSURL URLWithString:request.path relativeToURL:self.baseURL] absoluteString];
+    AFHTTPRequestSerializer *requestSerializer;
+    switch (request.bodyType) {
+        case HJRequestBodyTypeFormData:
+            requestSerializer = self.httpRequestSerializer;
+            break;
+        case HJRequestBodyTypeJSON:
+            requestSerializer = self.jsonRequestSerializer;
+            break;
+    }
     if (request.files) {
-        URLRequest = [self.httpManager.requestSerializer multipartFormRequestWithMethod:method URLString:URLString parameters:request.params constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+        URLRequest = [requestSerializer multipartFormRequestWithMethod:method URLString:URLString parameters:request.params constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             for (HJRequestFormFile *file in request.files) {
                 [formData appendPartWithFileData:file.data name:file.name fileName:file.fileName mimeType:file.mineType];
             }
         } error:&error];
     } else {
-        URLRequest = [self.httpManager.requestSerializer requestWithMethod:method URLString:URLString parameters:request.params error:&error];
+        URLRequest = [requestSerializer requestWithMethod:method URLString:URLString parameters:request.params error:&error];
     }
     NSAssert(error == nil, @"创建请求失败");
+    request.timeoutInterval = self.timeoutInterval;
+    if (request.timeoutInterval > 0) {
+        URLRequest.timeoutInterval = request.timeoutInterval;
+    }
     return URLRequest;
 }
 
 /// 创建请求响应
 - (HJResponse *)createResponse:(HJRequest *)request responseObject:(id)responseObject {
-    NSAssert(self.responseKeyMapping, @"responseKeyMapping 未设值");
+    HJResponse *response = [HJResponse new];
     id json = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
-    // 判断响应是否为json数据
-    if (!(json && [json isKindOfClass:[NSDictionary class]])) { return nil; }
+    response.code = 200;
+    response.json = json;
+    response.rawData = responseObject;
+    if (json == nil) { /* json = nil，代表数据仅仅是一段文字，直接解析字符串 */
+        response.data = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
+        return response;
+    }
     NSDictionary *jsonDict = json;
+    BOOL isNeedResponseKeyMapping = self.responseKeyMapping != nil;
     for (NSString *key in self.responseKeyMapping.allValues) {
         // 判断响应是否包含必要键
-        if (![jsonDict.allKeys containsObject:key]) { return nil; }
+        if (![jsonDict.allKeys containsObject:key]) {
+            isNeedResponseKeyMapping = NO;
+            break;
+        }
     }
-    HJResponse *response = [HJResponse new];
-    response.json = jsonDict;
-    for (NSString *key in self.responseKeyMapping.allKeys) {
-        [response setValue:jsonDict[self.responseKeyMapping[key]] forKey:key];
-    }
-    response.rawData = responseObject;
+    if (isNeedResponseKeyMapping) {
+        for (NSString *key in self.responseKeyMapping.allKeys) {
+            [response setValue:jsonDict[self.responseKeyMapping[key]] forKey:key];
+        }
+    } else { response.data = json; }
+    
     if (request.responseDataClsArray && request.deserializationPathArray) { /* 解析多个Model */
         NSAssert(request.responseDataClsArray.count == request.deserializationPathArray.count, @"解析类型与解析路径数量不一致");
         NSMutableArray *dataObjects = [NSMutableArray array];
@@ -247,10 +272,10 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
 /// 获取指定Requet请求方式名称
 - (NSString *)methodNameWithRequest:(HJRequest *)request {
     switch (request.method) {
-            case HJRequestMethodGET: return @"GET";
-            case HJRequestMethodPOST: return @"POST";
-            case HJRequestMethodPUT: return @"PUT";
-            case HJRequestMethodDELETE: return @"DELETE";
+        case HJRequestMethodGET: return @"GET";
+        case HJRequestMethodPOST: return @"POST";
+        case HJRequestMethodPUT: return @"PUT";
+        case HJRequestMethodDELETE: return @"DELETE";
     }
 }
 
@@ -273,7 +298,6 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
 
 /// 解析错误消息
 - (NSString *)errorStringWithError:(NSError *)error {
-    if (self.isPrintLog) { NSLog(@"%@", error); }
     if ([error.domain isEqualToString:NSURLErrorDomain]) {
         if (error.code == NSURLErrorNotConnectedToInternet) {
             return @"您似乎已断开与互联网的连接，请检查网络设置";
@@ -299,6 +323,7 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
         if ([request isKindOfClass:[HJRequest class]]) { NSLog(@"开始请求: %@, %@", request, ((HJRequest *)request).params); }
         else { NSLog(@"开始请求: %@", request); }
     }
+    if (request.isSubrequest) { return; }
     for (id<HJClientPlugin> plugin in self.plugins) {
         if ([plugin respondsToSelector:@selector(client:willExecutionRequest:)]) {
             [plugin client:self willExecutionRequest:request];
@@ -320,23 +345,10 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
     return nil;
 }
 
-/// 请求出错获取自定义响应
-- (id)getCustomResponseOnError:(HJRequest *)request {
-    for (id<HJClientPlugin> plugin in self.plugins) {
-        if ([plugin respondsToSelector:@selector(client:customResponseOnErrorForRequest:)]) {
-            id data = [plugin client:self customResponseOnErrorForRequest:request];
-            if (data) {
-                if (self.isPrintLog) { NSLog(@"请求出错，获取到自定义响应: %@", request); }
-                return data;
-            }
-        }
-    }
-    return nil;
-}
-
 /// 请求接收到数据
 - (void)didReceiveResponse:(HJResponse *)response isCustomData:(BOOL)isCustomData forRequest:(HJRequest *)request {
     if (self.isPrintLog) { NSLog(@"请求收到数据: %@", request); }
+    if (request.isSubrequest) { return; }
     for (id<HJClientPlugin> plugin in self.plugins) {
         if ([plugin respondsToSelector:@selector(client:didReceiveResponse:isCustomData:forRequest:)]) {
             [plugin client:self didReceiveResponse:response isCustomData:isCustomData forRequest:request];
@@ -346,6 +358,7 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
 
 /// 更新下载请求进度
 - (void)uploadProgress:(NSProgress *)progress forRequest:(HJRequest *)request {
+    if (request.isSubrequest) { return; }
     for (id<HJClientPlugin> plugin in self.plugins) {
         if ([plugin respondsToSelector:@selector(client:uploadProgress:forRequest:)]) {
             [plugin client:self uploadProgress:progress forRequest:request];
@@ -359,11 +372,28 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
         if (error) { NSLog(@"请求完成: %@, %@", request, error); }
         else { NSLog(@"请求完成: %@", request); }
     }
+    if (request.isSubrequest) { return; }
     for (id<HJClientPlugin> plugin in self.plugins) {
         if ([plugin respondsToSelector:@selector(client:didFinishRequest:)]) {
             [plugin client:self didFinishRequest:request];
         }
     }
+}
+
+#pragma mark - Getter
+
+- (AFHTTPRequestSerializer *)httpRequestSerializer {
+    if (!_httpRequestSerializer) {
+        _httpRequestSerializer = [AFHTTPRequestSerializer new];
+    }
+    return _httpRequestSerializer;
+}
+
+- (AFJSONRequestSerializer *)jsonRequestSerializer {
+    if (!_jsonRequestSerializer) {
+        _jsonRequestSerializer = [AFJSONRequestSerializer new];
+    }
+    return _jsonRequestSerializer;
 }
 
 #pragma mark - Init
@@ -381,10 +411,11 @@ HJClientResponseKey const HJClientResponseMessageKey = @"message";
 /// 初始化
 - (instancetype)init {
     if (self = [super init]) {
+        _timeoutInterval = 15;
+        
         _httpManager = [AFHTTPSessionManager manager];
-        _httpManager.requestSerializer.timeoutInterval = 15;
         _httpManager.responseSerializer = [AFHTTPResponseSerializer serializer];
-
+        
         _plugins = [NSMutableArray array];
         _isPrintLog = YES;
     }

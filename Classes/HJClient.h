@@ -33,6 +33,8 @@ typedef void(^HJRequestFailureBlock)(NSString *error);
 - (NSMutableURLRequest *)client:(HJClient *)client prepareURLRequest:(NSMutableURLRequest *)request;
 /// 检验响应数据，YES = 校验通过
 - (BOOL)client:(HJClient *)client verifyResponse:(HJResponse *)response forRequest:(HJRequest *)request error:(NSString **)error;
+/// 请求收到错误，可自定义错误信息
+- (NSString *)client:(HJClient *)client request:(HJRequest *)request didReceiveError:(NSError *)error;
 
 @end
 
@@ -51,6 +53,9 @@ typedef void(^HJRequestFailureBlock)(NSString *error);
 
 /// 响应对象键值映射，@{HJClientResponseKey:xxx}
 @property (nonatomic, strong) NSDictionary *responseKeyMapping;
+
+/// 请求超时时间，默认 = 15s
+@property (nonatomic, assign) NSTimeInterval timeoutInterval;
 
 /// 注册插件
 - (void)registerPlugin:(id<HJClientPlugin>)plugin;
